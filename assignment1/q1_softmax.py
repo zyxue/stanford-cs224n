@@ -74,7 +74,13 @@ def test_softmax():
     This function will not be called by the autograder, nor will
     your tests be graded.
     """
-    pass
+    x = np.array([[1, 2, 3], [4, 5, 6]])
+    x -= x.max(axis=1).reshape(-1, 1)
+    assert (x == np.array([[-2, -1,  0], [-2, -1,  0]])).all()
+    res = softmax(x)
+    ans = np.array([[ 0.09003057,  0.24472847,  0.66524096],
+                    [ 0.09003057,  0.24472847,  0.66524096]])
+    assert np.allclose(res, ans, rtol=1e-05, atol=1e-06)
 
 
 if __name__ == "__main__":
