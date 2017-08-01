@@ -32,15 +32,17 @@ def gradcheck_naive(f, x):
         # before calling f(x) each time. This will make it possible
         # to test cost functions with built in randomness later.
         old_x = x[ix]
-        x[ix] -= h
+        x[ix] = old_x + h       # increment by h
         random.setstate(rndstate)
-        # _: ignore the analytic gradient, not need it
-        fxh, _ = f(x)
-        numgrad = (fxh - fx) / h
+        fxph, _ = f(x)             # evalute f(x + h)
+        x[ix] = old_x - h
+        random.setstate(rndstate)
+        fxmh, _ = f(x)             # evaluate f(x - h)
+        numgrad = (fxph - fxmh) / (2 * h)  # the slope
         x[ix] = old_x
 
         reldiff = abs(numgrad - grad[ix]) / max(1, abs(numgrad), abs(grad[ix]))
-        print(numgrad, reldiff)
+        # print('numerical gradient: {0}; reldiff: {1}'.format(numgrad, reldiff))
         if reldiff > 1e-5:
             print("Gradient check failed.")
             print("First gradient error found at index {0}".format(str(ix)))
