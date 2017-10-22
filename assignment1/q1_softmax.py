@@ -28,15 +28,15 @@ def softmax(x):
     """
     orig_shape = x.shape
 
-    if len(x.shape) > 1:
-        x -= x.max(axis=1).reshape(-1, 1)
-        exp = np.exp(x)
-        res = exp / exp.sum(axis=1).reshape(-1, 1)
-    else:
-        x -= x.max()
-        exp = np.exp(x)
-        res = exp / exp.sum()
+    if len(orig_shape) == 1:       # only one example
+        x = x.reshape(1, -1)    # convert it into [[x1, x2, ..]] form
 
+    x -= x.max(axis=1).reshape(-1, 1)
+    exp = np.exp(x)
+    res = exp / exp.sum(axis=1).reshape(-1, 1)
+
+    if len(orig_shape) == 1:
+        res = res.ravel()
     assert res.shape == orig_shape
     return res
 
