@@ -7,17 +7,19 @@ from q1_softmax import softmax
 from q2_gradcheck import gradcheck_naive
 from q2_sigmoid import sigmoid, sigmoid_grad
 
+
 def normalizeRows(x):
     """ Row normalization function
 
     Implement a function that normalizes each row of a matrix to have
     unit length.
     """
-
     ### YOUR CODE HERE
-    raise NotImplementedError
+    norm = np.sqrt((a ** 2).sum(axis=1))
+    # to make division broadcast correctly
+    norm = norm.reshape(-1, 1)
+    x /= norm
     ### END YOUR CODE
-
     return x
 
 
