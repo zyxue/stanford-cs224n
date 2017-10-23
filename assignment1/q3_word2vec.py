@@ -41,10 +41,10 @@ def softmaxCostAndGradient(predicted, target, outputVectors, dataset):
     entropy loss.
 
     Arguments:
-    predicted -- numpy ndarray, predicted word vector (\hat{v} in
-                 the written component)
-    target -- integer, the index of the target word
-    outputVectors -- "output" vectors (as rows) for all tokens
+    predicted (1xD) -- numpy ndarray, predicted word vector (\hat{v} in
+                       the written component)
+    target (scalar) -- integer, the index of the target word
+    outputVectors (WxD) -- "output" vectors (as rows) for all tokens
     dataset -- needed for negative sampling, unused here.
 
     Return:
@@ -58,11 +58,29 @@ def softmaxCostAndGradient(predicted, target, outputVectors, dataset):
     free to reference the code you previously wrote for this
     assignment!
     """
+    print(predicted.shape)
+    print(target.shape)
+    print(outputVectors.shape)
 
     ### YOUR CODE HERE
-    raise NotImplementedError
-    ### END YOUR CODE
+    W = outputVectors.shape[0]  # vocabulary size
 
+    # correspondence between variable names and those in the notebooks
+    # U = outputVectors
+    # vc = predicted
+
+    y = np.zeros(W)
+    target_idx = target
+    y[target_idx] = 1
+
+    y_hat = softmax(np.dot(predicted, outputVectors.T)).ravel()
+    cost = np.log(y_hat[target_idx])
+
+    gradPred = np.dot((y_hat - y), outputVectors)
+    grad = np.dot(
+        (y_hat - y).reshape(-1, 1),
+        predicted.reshape(1, -1))
+    ### END YOUR CODE
     return cost, gradPred, grad
 
 
@@ -70,7 +88,7 @@ def getNegativeSamples(target, dataset, K):
     """ Samples K indexes which are not the target """
 
     indices = [None] * K
-    for k in xrange(K):
+    for k in range(K):
         newidx = dataset.sampleTokenIdx()
         while newidx == target:
             newidx = dataset.sampleTokenIdx()
@@ -87,6 +105,10 @@ def negSamplingCostAndGradient(predicted, target, outputVectors, dataset,
     models, using the negative sampling technique. K is the sample
     size.
 
+    predicted (1xD)
+    target (scalar)
+    outputVectors (WxD)
+
     Note: See test_word2vec below for dataset's initialization.
 
     Arguments/Return Specifications: same as softmaxCostAndGradient
@@ -98,7 +120,19 @@ def negSamplingCostAndGradient(predicted, target, outputVectors, dataset,
     indices.extend(getNegativeSamples(target, dataset, K))
 
     ### YOUR CODE HERE
-    raise NotImplementedError
+    flipper = np.ones(indices)
+    flipper[flipper != target] = -1
+
+    # (1XD) x (Dx(1+K))
+    dotted = np.dot(predicted, outputVectors[indices].T)  # (1x(1+K))
+
+    cost = -np.sum(np.log(sigmoid(flipper * dotted)))
+
+    # (1x(1+K)) x (1+K)xD
+    gradPred = np.sum(flipper * np.dot(sigmoid(flipper * dotted - 1), outputVectors[indices]))
+
+    # ((1+K)x1) x (1xD)
+    grad = flipper * np.dot(sigmoid(flipper * dotted - 1).reshape(-1, 1), predicted.reshape(1, -1))
     ### END YOUR CODE
 
     return cost, gradPred, grad
@@ -197,20 +231,22 @@ def word2vec_sgd_wrapper(word2vecModel, tokens, wordVectors, dataset, C,
 def test_word2vec():
     """ Interface to the dataset for negative sampling """
     dataset = type('dummy', (), {})()
+
     def dummySampleTokenIdx():
         return random.randint(0, 4)
 
     def getRandomContext(C):
         tokens = ["a", "b", "c", "d", "e"]
-        return tokens[random.randint(0,4)], \
-            [tokens[random.randint(0,4)] for i in xrange(2*C)]
+        return (tokens[random.randint(0, 4)],
+                [tokens[random.randint(0, 4)] for i in range(2 * C)])
+
     dataset.sampleTokenIdx = dummySampleTokenIdx
     dataset.getRandomContext = getRandomContext
 
     random.seed(31415)
     np.random.seed(9265)
-    dummy_vectors = normalizeRows(np.random.randn(10,3))
-    dummy_tokens = dict([("a",0), ("b",1), ("c",2),("d",3),("e",4)])
+    dummy_vectors = normalizeRows(np.random.randn(10, 3))
+    dummy_tokens = dict([("a", 0), ("b",1), ("c",2),("d",3),("e",4)])
     print("==== Gradient check for skip-gram ====")
     gradcheck_naive(lambda vec: word2vec_sgd_wrapper(
         skipgram, dummy_tokens, vec, dataset, 5, softmaxCostAndGradient),
@@ -253,4 +289,4 @@ def test_word2vec():
 
 if __name__ == "__main__":
     test_normalize_rows()
-    # test_word2vec()
+    test_word2vec()
