@@ -14,7 +14,9 @@ http://nbviewer.jupyter.org/github/zyxue/stanford-cs224n/tree/master/
 
 ## Note
 
-I used Python 3 and pytest, which provides pretty testing output. e.g.
+This course used Python 2.
+
+I installed pytest, which provides pretty testing output. e.g.
 
 ```
 pytest q1_softmax.py
