@@ -114,30 +114,38 @@ def negSamplingCostAndGradient(predicted, target, outputVectors, dataset,
     indices.extend(getNegativeSamples(target, dataset, K))
 
     ### YOUR CODE HERE
-    W = outputVectors.shape[0]
+    # compared to
+    # https://github.com/hankcs/CS224n/blob/master/assignment1/q3_word2vec.py#L96,
+    # this implementation is vectorized, it DOESN'T consider duplicated indices
+    # as appeared in the test cases. (confirmed during debugging with pdb). The
+    # vectorized version is a bit awkward because of trying to get unique
+    # indices. Maybe hankcs' loop-based version is indeed easier to understand and
+    # implement. But unclear of performance yet, which is better.
 
-    flipper = np.zeros(W)
-    flipper[indices] = -1
-    flipper[target] = 1
+    # only work on the vectors to be updated based indices
+    indices = [indices[0]] + np.unique(indices[1:]).tolist()
+    u_sub = outputVectors[indices]
+    flipper = - np.ones(len(indices))
+    # based on how indices are generated, target is always in the first
+    # positive
+    flipper[0] = 1
     flipperT = flipper.reshape(-1, 1)
 
-    ov = np.zeros(outputVectors.shape)
-    ov[indices] = outputVectors[indices]
-
-    # (1XD) x (Dx(1+K))
-    dotted = np.dot(predicted, ov.T)  # (1xW)
-
+    # dimension: L = K + 1
+    # (1xD) x (DxL) => (1xL)
+    dotted = np.dot(predicted, u_sub.T)
+    # scalar
     cost = -np.sum(np.log(sigmoid(flipper * dotted)))
+    # (1xL) x (LxD) => (1xD)
+    gradPred = np.dot(sigmoid(flipper * dotted) - 1, flipperT * u_sub)
+    # ((L+1) x (1xD) => (LxD)
+    grad_sub = flipperT * np.outer(sigmoid(flipper * dotted) - 1, predicted)
 
-    # (1xW) x (WxD)
-    gradPred = np.dot(sigmoid(flipper * dotted) - 1, flipperT * ov)
-
-    # ((1+W) x (1xD)
-    grad = flipperT * np.outer(sigmoid(flipper * dotted) - 1, predicted)
-
+    # WxD
+    grad = np.zeros(outputVectors.shape)
+    grad[indices] = grad_sub
     # import pdb; pdb.set_trace()
     ### END YOUR CODE
-
     return cost, gradPred, grad
 
 
@@ -176,9 +184,11 @@ def skipgram(currentWord, C, contextWords, tokens, inputVectors, outputVectors,
         target = tokens[word]
         _cost, _gradPred, _grad = word2vecCostAndGradient(
             predicted, target, outputVectors, dataset)
+        # print(_gradPred)
         cost += _cost
         gradIn[currentWord_idx] += _gradPred
         gradOut += _grad
+
     ### END YOUR CODE
 
     return cost, gradIn, gradOut
@@ -239,6 +249,7 @@ def word2vec_sgd_wrapper(word2vecModel, tokens, wordVectors, dataset, C,
     return cost, grad
 
 
+
 def test_word2vec():
     """ Interface to the dataset for negative sampling """
     dataset = type('dummy', (), {})()
@@ -248,8 +259,8 @@ def test_word2vec():
 
     def getRandomContext(C):
         tokens = ["a", "b", "c", "d", "e"]
-        return (tokens[random.randint(0, 4)],
-                [tokens[random.randint(0, 4)] for i in range(2 * C)])
+        return tokens[random.randint(0, 4)], \
+               [tokens[random.randint(0, 4)] for i in xrange(2 * C)]
 
     dataset.sampleTokenIdx = dummySampleTokenIdx
     dataset.getRandomContext = getRandomContext
@@ -257,56 +268,36 @@ def test_word2vec():
     random.seed(31415)
     np.random.seed(9265)
     dummy_vectors = normalizeRows(np.random.randn(10, 3))
-    dummy_tokens = dict([("a", 0),  ("b", 1),  ("c", 2), ("d", 3), ("e", 4)])
-    print("==== Gradient check for skip-gram ====")
-
-    # _f = lambda vec: softmaxCostAndGradient(vec, 0, dummy_vectors, dataset, -1)[2]
-    # print(dummy_vectors[0])
-    # gradcheck_naive(
-    #     lambda vec: softmaxCostAndGradient(vec, 1, dummy_vectors, dataset, -1)[:2], dummy_vectors[0])
-    #     # np.array([1, 1, 0.9]))
-
-    C = 5                       # context size
-    # gradcheck_naive(lambda vec: word2vec_sgd_wrapper(
-    #     skipgram, dummy_tokens, vec, dataset, C, softmaxCostAndGradient),
-    #                 dummy_vectors)
+    dummy_tokens = dict([("a", 0), ("b", 1), ("c", 2), ("d", 3), ("e", 4)])
+    print "==== Gradient check for skip-gram ===="
+    gradcheck_naive(lambda vec: word2vec_sgd_wrapper(
+        skipgram, dummy_tokens, vec, dataset, 5, softmaxCostAndGradient),
+                    dummy_vectors)
 
     gradcheck_naive(lambda vec: word2vec_sgd_wrapper(
-        skipgram, dummy_tokens, vec, dataset, C, negSamplingCostAndGradient),
-        dummy_vectors)
+        skipgram, dummy_tokens, vec, dataset, 5, negSamplingCostAndGradient),
+                    dummy_vectors)
 
-    # print("\n==== Gradient check for CBOW      ====")
+    # print "\n==== Gradient check for CBOW      ===="
     # gradcheck_naive(lambda vec: word2vec_sgd_wrapper(
     #     cbow, dummy_tokens, vec, dataset, 5, softmaxCostAndGradient),
-    #     dummy_vectors)
+    #                 dummy_vectors)
+
     # gradcheck_naive(lambda vec: word2vec_sgd_wrapper(
     #     cbow, dummy_tokens, vec, dataset, 5, negSamplingCostAndGradient),
-    #     dummy_vectors)
+    #                 dummy_vectors)
 
-    print("\n=== Results ===")
-    print(skipgram("c", 3, ["a", "b", "e", "d", "b", "c"],
-                   dummy_tokens,
-                   dummy_vectors[:5,:],
-                   dummy_vectors[5:,:],
-                   dataset))
-    print(skipgram("c", 1, ["a", "b"],
-                   dummy_tokens,
-                   dummy_vectors[:5,:],
-                   dummy_vectors[5:,:],
-                   dataset,
-                   negSamplingCostAndGradient))
-
-    # print(cbow("a", 2, ["a", "b", "c", "a"],
-    #            dummy_tokens,
-    #            dummy_vectors[:5,:],
-    #            dummy_vectors[5:,:],
-    #            dataset))
-    # print(cbow("a", 2, ["a", "b", "a", "c"],
-    #            dummy_tokens,
-    #            dummy_vectors[:5,:],
-    #            dummy_vectors[5:,:],
-    #            dataset,
-    #            negSamplingCostAndGradient))
+    print "\n=== Results ==="
+    print skipgram("c", 3, ["a", "b", "e", "d", "b", "c"],
+                   dummy_tokens, dummy_vectors[:5, :], dummy_vectors[5:, :], dataset)
+    print skipgram("c", 1, ["a", "b"],
+                   dummy_tokens, dummy_vectors[:5, :], dummy_vectors[5:, :], dataset,
+                   negSamplingCostAndGradient)
+    # print cbow("a", 2, ["a", "b", "c", "a"],
+    #            dummy_tokens, dummy_vectors[:5, :], dummy_vectors[5:, :], dataset)
+    # print cbow("a", 2, ["a", "b", "a", "c"],
+    #            dummy_tokens, dummy_vectors[:5, :], dummy_vectors[5:, :], dataset,
+    #            negSamplingCostAndGradient)
 
 
 if __name__ == "__main__":
