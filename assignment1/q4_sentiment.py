@@ -49,7 +49,9 @@ def getSentenceFeatures(tokens, wordVectors, sentence):
     sentVector = np.zeros((wordVectors.shape[1],))
 
     ### YOUR CODE HERE
-    raise NotImplementedError
+    for w in sentence:
+        sentVector += wordVectors[tokens[w]]
+    sentVector /= len(sentence)
     ### END YOUR CODE
 
     assert sentVector.shape == (wordVectors.shape[1],)
@@ -63,7 +65,8 @@ def getRegularizationValues():
     """
     values = None   # Assign a list of floats in the block below
     ### YOUR CODE HERE
-    raise NotImplementedError
+    # values = [0.0001, 0.001, 0.1, 1, 10, 100]
+    values = 10 ** np.linspace(-2, 4, 50)
     ### END YOUR CODE
     return sorted(values)
 
@@ -87,7 +90,7 @@ def chooseBestModel(results):
     bestResult = None
 
     ### YOUR CODE HERE
-    raise NotImplementedError
+    bestResult = max(results, key=lambda d: d['dev'])
     ### END YOUR CODE
 
     return bestResult
@@ -107,7 +110,8 @@ def plotRegVsAccuracy(regValues, results, filename):
     plt.xlabel("regularization")
     plt.ylabel("accuracy")
     plt.legend(['train', 'dev'], loc='upper left')
-    plt.savefig(filename)
+    plt.grid()
+    plt.savefig(filename, bbox_inches='tight')
 
 
 def outputConfusionMatrix(features, labels, clf, filename):
@@ -129,7 +133,7 @@ def outputConfusionMatrix(features, labels, clf, filename):
     plt.tight_layout()
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
-    plt.savefig(filename)
+    plt.savefig(filename, bbox_inches='tight')
 
 
 def outputPredictions(dataset, features, labels, clf, filename):
