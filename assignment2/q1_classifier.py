@@ -142,6 +142,7 @@ class SoftmaxModel(Model):
             train_op: The Op for training.
         """
         ### YOUR CODE HERE
+        train_op = tf.train.GradientDescentOptimizer(learning_rate=0.01).minimize(loss)
         ### END YOUR CODE
         return train_op
 
@@ -176,7 +177,8 @@ class SoftmaxModel(Model):
             start_time = time.time()
             average_loss = self.run_epoch(sess, inputs, labels)
             duration = time.time() - start_time
-            print 'Epoch {:}: loss = {:.2f} ({:.3f} sec)'.format(epoch, average_loss, duration)
+            print 'Epoch {:}: loss = {:.7f} ({:.5f} sec)'.format(
+                epoch, average_loss, duration)
             losses.append(average_loss)
         return losses
 
