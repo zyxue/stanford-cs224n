@@ -24,8 +24,12 @@ def softmax(x):
     """
 
     ### YOUR CODE HERE
+    x_sum = tf.reduce_sum(x, axis=1)
+    e = tf.exp(x)
+    s = tf.reduce_sum(e, axis=1)
+    s = tf.reshape(s, (-1, 1))
+    out = e / s
     ### END YOUR CODE
-
     return out
 
 
@@ -99,4 +103,4 @@ def test_cross_entropy_loss_basic():
 
 if __name__ == "__main__":
     test_softmax_basic()
-    test_cross_entropy_loss_basic()
+    # test_cross_entropy_loss_basic()
