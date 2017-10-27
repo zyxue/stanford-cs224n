@@ -1,4 +1,5 @@
 assignment1/utils/datasets
+assignment2/data
 .ipynb_checkpoints
 __pycache__
 
@@ -8,3 +9,4 @@ saved_params_*.npy
 assignment*.zip
 venv2
 .cache
+
