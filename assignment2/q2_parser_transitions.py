@@ -78,10 +78,20 @@ def minibatch_parse(sentences, model, batch_size):
                       Ordering should be the same as in sentences (i.e., dependencies[i] should
                       contain the parse for sentences[i]).
     """
-
     ### YOUR CODE HERE
+    partial_parses = [PartialParse(s) for s in sentences]
+    unfinished_parses = [_ for _ in partial_parses]
+    while unfinished_parses:
+        batch = unfinished_parses[:batch_size]
+        transitions = model.predict(batch)
+        for (p, t) in zip(batch, transitions):
+            p.parse_step(t)
+            # finished parsing this sentence, and it's not necessarily ['ROOT']
+            if len(p.stack) == 1:
+                unfinished_parses.remove(p)
+        # unfinished_parses = unfinished_parses[batch_size:]
+    dependencies = [_.dependencies for _ in partial_parses]
     ### END YOUR CODE
-
     return dependencies
 
 
@@ -168,4 +178,4 @@ def test_minibatch_parse():
 if __name__ == '__main__':
     test_parse_step()
     test_parse()
-    # test_minibatch_parse()
+    test_minibatch_parse()
