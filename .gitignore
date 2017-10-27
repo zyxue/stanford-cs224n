@@ -4,3 +4,7 @@ __pycache__
 
 saved_params_*.npy
 *.pyc
+
+assignment*.zip
+venv2
+.cache
