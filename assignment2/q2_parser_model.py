@@ -115,7 +115,6 @@ class ParserModel(Model):
         ### YOUR CODE HERE
         embedded = tf.Variable(self.pretrained_embeddings)
         tensor = tf.nn.embedding_lookup(embedded, self.input_placeholder)
-        # tensor = self.pretrained_embeddings[:, self.input_placeholder, self.config.embed_size];
         embeddings = tf.reshape(tensor, (-1, self.config.n_features * self.config.embed_size))
         ### END YOUR CODE
         return embeddings
@@ -148,16 +147,13 @@ class ParserModel(Model):
         x = self.add_embedding()
         ### YOUR CODE HERE
         xavier_initializer = xavier_weight_init()
-        W = xavier_initializer(
-            (self.config.n_features * self.config.embed_size, self.config.hidden_size))
-        b1 = xavier_initializer(
-            (self.config.hidden_size, ))
-        U = xavier_initializer(
-            (self.config.hidden_size, self.config.n_classes))
-        b2 = xavier_initializer(
-            (self.config.n_classes,))
-        h = tf.nn.relu(tf.matmul(x, W) + b1)
-        pred = tf.matmul(h, U) + b2
+        with tf.variable_scope('transformation'):
+            W = xavier_initializer((self.config.n_features * self.config.embed_size, self.config.hidden_size))
+            b1 = tf.Variable(tf.zeros((self.config.hidden_size, )))
+            U = xavier_initializer((self.config.hidden_size, self.config.n_classes))
+            b2 = tf.Variable(tf.zeros((self.config.n_classes,)))
+            h = tf.nn.relu(tf.matmul(x, W) + b1)
+            pred = tf.matmul(h, U) + b2
         ### END YOUR CODE
         return pred
 
@@ -177,7 +173,7 @@ class ParserModel(Model):
         ### YOUR CODE HERE
         ce = tf.nn.softmax_cross_entropy_with_logits(
             labels=self.labels_placeholder, logits=pred)
-        loss = tf.reduce_sum(ce)
+        loss = tf.reduce_mean(ce)
         ### END YOUR CODE
         return loss
 
@@ -201,7 +197,7 @@ class ParserModel(Model):
             train_op: The Op for training.
         """
         ### YOUR CODE HERE
-        train_op = tf.train.AdamOptimizer().minimize(loss)
+        train_op = tf.train.AdamOptimizer(self.config.lr).minimize(loss)
         ### END YOUR CODE
         return train_op
 
@@ -290,6 +286,4 @@ def main(debug=True):
                 print "Done!"
 
 if __name__ == '__main__':
-    main()
-
-
+    main(False)
