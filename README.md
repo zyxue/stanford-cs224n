@@ -7,7 +7,7 @@ http://web.stanford.edu/class/cs224n/syllabus.html
 
 ## nbviewer
 
-Better viewer for notebooks
+A complementary viewer for notebooks (.ipynb files)
 
 http://nbviewer.jupyter.org/github/zyxue/stanford-cs224n/tree/master/
 
