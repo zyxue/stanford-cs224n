@@ -1,5 +1,3 @@
-http://web.stanford.edu/class/cs224n/assignment2/assignment2-soln.pdf
-
 # 2 Neural Transition-Based Dependency Parsing (50 points)
 
 Some thoughts:
@@ -11,6 +9,18 @@ classification problem with 3 classes. The input is a vector concatenated from
 in the buffer, dependent of the second-to-last word in the stack if there is
 one, etc.). Given the dimension of the word vector is 50, the concatenated
 vector is 1800-dimensional (50 x 36).
+
+
+Answer to dependency table:
+
+| ROOT, parsed, this           | sentence, correctly |                     | SHIFT     |
+|------------------------------|---------------------|---------------------|-----------|
+| ROOT, parsed, this, sentence | correctly           |                     | SHIFT     |
+| ROOT, parsed, sentence       | correctly           | sentence -> this    | LEFT-ARC  |
+| ROOT, parsed                 | correctly           | parsed -> sentence  | RIGHT-ARC |
+| ROOT, parsed, correctly      |                     |                     | SHIFT     |
+| ROOT, parsed                 |                     | parsed -> correctly | RIGHT-ARC |
+| ROOT                         |                     | ROOT-parsed         | RIGHT-ARC |
 
 Here is the training log:
 
