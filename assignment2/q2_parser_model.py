@@ -148,9 +148,9 @@ class ParserModel(Model):
         ### YOUR CODE HERE
         xavier_initializer = xavier_weight_init()
         with tf.variable_scope('transformation'):
-            W = xavier_initializer((self.config.n_features * self.config.embed_size, self.config.hidden_size))
+            W = tf.Variable(xavier_initializer((self.config.n_features * self.config.embed_size, self.config.hidden_size)))
             b1 = tf.Variable(tf.zeros((self.config.hidden_size, )))
-            U = xavier_initializer((self.config.hidden_size, self.config.n_classes))
+            U = tf.Variable(xavier_initializer((self.config.hidden_size, self.config.n_classes)))
             b2 = tf.Variable(tf.zeros((self.config.n_classes,)))
             h = tf.nn.relu(tf.matmul(x, W) + b1)
             pred = tf.matmul(h, U) + b2
