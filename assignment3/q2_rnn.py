@@ -60,6 +60,7 @@ class Config:
         self.conll_output = self.output_path + "{}_predictions.conll".format(self.cell)
         self.log_output = self.output_path + "log"
 
+
 def pad_sequences(data, max_length):
     """Ensures each input-output seqeunce pair in @data is of length
     @max_length by padding it with zeros and truncating the rest of the
@@ -103,7 +104,16 @@ def pad_sequences(data, max_length):
 
     for sentence, labels in data:
         ### YOUR CODE HERE (~4-6 lines)
-        pass
+        dlen = max_length - len(sentence)
+        if dlen > 0:
+            n_sen = sentence + [zero_vector] * dlen
+            n_lab = labels + [zero_label] * dlen
+            msk = [True] * len(sentence) + [False] * dlen
+        else:
+            n_sen = sentence[:max_length]
+            n_lab = labels[:max_length]
+            msk = [True] * max_length
+        ret.append((n_sen, n_lab, msk))
         ### END YOUR CODE ###
     return ret
 
