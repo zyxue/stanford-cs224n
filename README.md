@@ -1,11 +1,11 @@
 # Standford CS224n
 
-The three assignments are considered finished. In the future, following work on
-my selected final project may be added here, too.
+The three assignments are considered completed. In the future, following work on
+the selected final project may be added here, too.
 
-For each question in each assignment, besides the code, I usually have a
+For each question in each assignment, besides the coding part, I usually have a
 corresponding jupyter notebook to record my written answers. They main include
-more details (e.g. backpropagation derivations) and could be used as in
+more details (e.g. backpropagation derivation) and could be used as in
 complementary to the stanford solution files.
 
 ## The course 
