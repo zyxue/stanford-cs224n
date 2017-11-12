@@ -10,3 +10,6 @@ assignment*.zip
 venv2
 .cache
 
+graphs/
+results/
+
