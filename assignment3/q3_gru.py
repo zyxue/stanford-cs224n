@@ -225,7 +225,7 @@ Uo={:.2f}, Wo={:.2f}, bo={:.2f}""".format(x, Ur[0,0], Wr[0,0], br[0], Uz[0,0], W
     plt.xlabel("$h_{t-1}$")
     plt.legend()
     output_path = "{}-{}-{}.png".format(args.output_prefix, x, "dynamics")
-    plt.savefig(output_path)
+    plt.savefig(output_path, bbox_inches='tight')
 
 def compute_cell_dynamics(args):
     with tf.Graph().as_default():
@@ -286,7 +286,7 @@ def compute_cell_dynamics(args):
 
 def make_prediction_plot(args, losses, grad_norms):
     plt.subplot(2, 1, 1)
-    plt.title("{} on sequences of length {} ({} gradient clipping)".format(args.cell, args.max_length, "with" if args.clip_gradients else "without"))
+    plt.title("{} on sequences of length {} ({} gradient clipping)".format(args.cell, args.max_length, "with" if args.clip_gradients else "without"), fontsize=10)
     plt.plot(np.arange(losses.size), losses.flatten(), label="Loss")
     plt.ylabel("Loss")
 
