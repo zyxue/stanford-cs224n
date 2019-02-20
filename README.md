@@ -26,7 +26,7 @@ http://nbviewer.jupyter.org/github/zyxue/stanford-cs224n/tree/master/
 
 ## Note
 
-This course used Python 2.
+This course used Python 2.7.
 
 
 ## Tensorflow 1.2
